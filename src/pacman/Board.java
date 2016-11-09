@@ -57,7 +57,7 @@ public class Board extends JPanel implements ActionListener {
 
     //variables to store the pictures of the ghosts and of pacman as he moves around
     //TODO add multiple ghost images and create new functions to correspond with that
-    private Image ghost1;
+    private Image ghost1, ghost2, ghost3, ghost4;
     private Image pacman1, pacman2up, pacman2left, pacman2right, pacman2down;
     private Image pacman3up, pacman3down, pacman3left, pacman3right;
     private Image pacman4up, pacman4down, pacman4left, pacman4right;
@@ -221,7 +221,7 @@ public class Board extends JPanel implements ActionListener {
         String pau2 = "To Pause And Unpause The Game";
         String res = "To Restart The Game, Press '0' While Playing";
         String highScore = "HIGH SCORE: ";
-        
+
         Font small = new Font("Comic-Sans", Font.BOLD, 14);
         FontMetrics metr = this.getFontMetrics(small);
 
@@ -229,13 +229,13 @@ public class Board extends JPanel implements ActionListener {
         g2d.setColor(Color.WHITE);
         g2d.setFont(small);
         g2d.drawString(ent, (scrsize - metr.stringWidth(ent)) / 2, scrsize / 6);
-        
+
         g2d.drawString(pau1, (scrsize - metr.stringWidth(ent)) / 2, 5 * (scrsize / 12));
-        
+
         g2d.drawString(pau2, (scrsize - metr.stringWidth(ent)) / 2, 6 * (scrsize / 12));
-        
+
         g2d.drawString(res, (scrsize - metr.stringWidth(ent)) / 4, 7 * (scrsize / 12));
-        
+
         g2d.drawString(highScore, (scrsize - metr.stringWidth(ent)) / 2, 5 * (scrsize / 6));
     }
 
@@ -358,7 +358,7 @@ public class Board extends JPanel implements ActionListener {
 
             ghostx[i] = ghostx[i] + (ghostdx[i] * ghostspeed[i]);
             ghosty[i] = ghosty[i] + (ghostdy[i] * ghostspeed[i]);
-            drawGhost(g2d, ghostx[i] + 1, ghosty[i] + 1);
+            drawGhost(g2d, ghostx[i] + 1, ghosty[i] + 1, i);
 
             if (pacmanx > (ghostx[i] - 12) && pacmanx < (ghostx[i] + 12)
                     && pacmany > (ghosty[i] - 12) && pacmany < (ghosty[i] + 12)
@@ -370,9 +370,22 @@ public class Board extends JPanel implements ActionListener {
     }
 
     //function to draw the ghosts:TODO add in all ghosts
-    private void drawGhost(Graphics2D g2d, int x, int y) {
+    private void drawGhost(Graphics2D g2d, int x, int y, int i) {
 
-        g2d.drawImage(ghost1, x, y, this);
+        switch (i) {
+            case 0:
+                g2d.drawImage(ghost1, x, y, this);
+                break;
+            case 1:
+                g2d.drawImage(ghost2, x, y, this);
+                break;
+            case 2:
+                g2d.drawImage(ghost3, x, y, this);
+                break;
+            default:
+                g2d.drawImage(ghost4, x, y, this);
+                break;
+        }
     }
 
     //function to move pacman:LEAVE
@@ -603,6 +616,9 @@ public class Board extends JPanel implements ActionListener {
     private void loadImages() {
 
         ghost1 = new ImageIcon("images/Ghost1.gif").getImage();
+        ghost2 = new ImageIcon("images/Ghost2.gif").getImage();
+        ghost3 = new ImageIcon("images/Ghost3.gif").getImage();
+        ghost4 = new ImageIcon("images/Ghost4.gif").getImage();
         pacman1 = new ImageIcon("images/PacMan1.gif").getImage();
         pacman2up = new ImageIcon("images/PacMan2up.gif").getImage();
         pacman3up = new ImageIcon("images/PacMan3up.gif").getImage();
