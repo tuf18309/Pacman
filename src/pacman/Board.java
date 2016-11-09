@@ -1,10 +1,6 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package pacman;
 
+//necessary imports for the program
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -26,41 +22,52 @@ import javax.swing.Timer;
 
 public class Board extends JPanel implements ActionListener {
 
+    //create a dimension and set the font of the score message at the bottom
     private Dimension d;
-    private final Font smallfont = new Font("Helvetica", Font.BOLD, 14);
+    private final Font smallfont = new Font("Comic-Sans", Font.BOLD, 14);
 
+    //variables to store image, dot color, and maze color
     private Image ii;
-    private final Color dotcolor = new Color(192, 192, 0);
+    private final Color dotcolor = new Color(255, 255, 255);
     private Color mazecolor;
 
+    //booleans to determine when the game is over
     private boolean ingame = false;
     private boolean dying = false;
 
+    //variables to determine the size of the level
     private final int blocksize = 24;
     private final int nrofblocks = 15;
     private final int scrsize = nrofblocks * blocksize;
+
+    //variables relating to the movement speed in game
     private final int pacanimdelay = 2;
     private final int pacmananimcount = 4;
-    private final int maxghosts = 12;
+    private final int maxghosts = 4;
     private final int pacmanspeed = 6;
 
+    //
     private int pacanimcount = pacanimdelay;
     private int pacanimdir = 1;
     private int pacmananimpos = 0;
-    private int nrofghosts = 6;
+    private int nrofghosts = 4;
     private int pacsleft, score;
     private int[] dx, dy;
     private int[] ghostx, ghosty, ghostdx, ghostdy, ghostspeed;
 
-    private Image ghost;
+    //variables to store the pictures of the ghosts and of pacman as he moves around
+    //TODO add multiple ghost images and create new functions to correspond with that
+    private Image ghost1;
     private Image pacman1, pacman2up, pacman2left, pacman2right, pacman2down;
     private Image pacman3up, pacman3down, pacman3left, pacman3right;
     private Image pacman4up, pacman4down, pacman4left, pacman4right;
 
+    //coordinates of pacman
     private int pacmanx, pacmany, pacmandx, pacmandy;
     private int reqdx, reqdy, viewdx, viewdy;
 
-    private final short leveldata[] = {
+    //level data for the three levels
+    private final short leveldata1[] = {
         19, 26, 26, 26, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 22,
         21, 0, 0, 0, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
         21, 0, 0, 0, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
@@ -78,43 +85,87 @@ public class Board extends JPanel implements ActionListener {
         9, 8, 8, 8, 8, 8, 8, 8, 8, 8, 25, 24, 24, 24, 28
     };
 
+    private final short leveldata2[] = {
+        19, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 22,
+        21, 0, 0, 0, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
+        21, 0, 0, 0, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
+        21, 0, 0, 0, 17, 16, 16, 24, 16, 16, 16, 16, 16, 16, 20,
+        17, 18, 18, 18, 16, 16, 20, 0, 17, 16, 16, 16, 16, 16, 20,
+        17, 16, 16, 16, 16, 16, 20, 0, 17, 16, 16, 16, 16, 24, 20,
+        25, 16, 16, 16, 24, 24, 28, 0, 25, 24, 24, 16, 20, 0, 21,
+        1, 17, 16, 20, 0, 0, 0, 0, 0, 0, 0, 17, 20, 0, 21,
+        1, 17, 16, 16, 18, 18, 22, 0, 19, 18, 18, 16, 20, 0, 21,
+        1, 17, 16, 16, 16, 16, 20, 0, 17, 16, 16, 16, 20, 0, 21,
+        1, 17, 16, 16, 16, 16, 20, 0, 17, 16, 16, 16, 20, 0, 21,
+        1, 17, 16, 16, 16, 16, 16, 18, 16, 16, 16, 16, 20, 0, 21,
+        1, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20, 0, 21,
+        1, 25, 24, 24, 24, 24, 24, 24, 24, 24, 16, 16, 16, 18, 20,
+        9, 8, 8, 8, 8, 8, 8, 8, 8, 8, 25, 24, 24, 24, 28
+    };
+
+    private final short leveldata3[] = {
+        19, 26, 26, 26, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 22,
+        21, 0, 0, 0, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
+        21, 0, 0, 0, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
+        21, 0, 0, 0, 17, 16, 16, 24, 16, 16, 16, 16, 16, 16, 20,
+        17, 18, 18, 18, 16, 16, 20, 0, 17, 16, 16, 16, 16, 16, 20,
+        17, 16, 16, 16, 16, 16, 20, 0, 17, 16, 16, 16, 16, 24, 20,
+        25, 16, 16, 16, 24, 24, 28, 0, 25, 24, 24, 16, 20, 0, 21,
+        1, 17, 16, 20, 0, 0, 0, 0, 0, 0, 0, 17, 20, 0, 21,
+        1, 17, 16, 16, 18, 18, 22, 0, 19, 18, 18, 16, 20, 0, 21,
+        1, 17, 16, 16, 16, 16, 20, 0, 17, 16, 16, 16, 20, 0, 21,
+        1, 17, 16, 16, 16, 16, 20, 0, 17, 16, 16, 16, 20, 0, 21,
+        1, 17, 16, 16, 16, 16, 16, 18, 16, 16, 16, 16, 20, 0, 21,
+        1, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20, 0, 21,
+        1, 25, 24, 24, 24, 24, 24, 24, 24, 24, 16, 16, 16, 18, 20,
+        9, 8, 8, 8, 8, 8, 8, 8, 8, 8, 25, 24, 24, 24, 28
+    };
+
+    //possible speeds for the ghosts
     private final int validspeeds[] = {1, 2, 3, 4, 6, 8};
     private final int maxspeed = 6;
 
+    //speed given to ghosts so that they are increasingly fast and the variable to hold level array and a timer
     private int currentspeed = 3;
     private short[] screendata;
     private Timer timer;
 
+    //constructor for the board to be created and initialized
     public Board() {
 
         loadImages();
         initVariables();
-        
+
         addKeyListener(new TAdapter());
 
         setFocusable(true);
 
-        setBackground(Color.black);
+        setBackground(Color.BLACK);
         setDoubleBuffered(true);
     }
 
+    //initializes and sets variables
     private void initVariables() {
 
         screendata = new short[nrofblocks * nrofblocks];
-        mazecolor = new Color(5, 100, 5);
+        //now color is blue
+        mazecolor = new Color(5, 5, 200);
         d = new Dimension(400, 400);
+
         ghostx = new int[maxghosts];
         ghostdx = new int[maxghosts];
         ghosty = new int[maxghosts];
         ghostdy = new int[maxghosts];
         ghostspeed = new int[maxghosts];
+
         dx = new int[4];
         dy = new int[4];
-        
+
         timer = new Timer(40, this);
         timer.start();
     }
 
+    //function for the listener to add a notify
     @Override
     public void addNotify() {
         super.addNotify();
@@ -122,6 +173,7 @@ public class Board extends JPanel implements ActionListener {
         initGame();
     }
 
+    //pacman movement function:LEAVE
     private void doAnim() {
 
         pacanimcount--;
@@ -136,6 +188,7 @@ public class Board extends JPanel implements ActionListener {
         }
     }
 
+    //
     private void playGame(Graphics2D g2d) {
 
         if (dying) {
@@ -151,20 +204,39 @@ public class Board extends JPanel implements ActionListener {
         }
     }
 
+    //function which creates the start screen:TODO finish custom start screen by changing displayed strings
     private void showIntroScreen(Graphics2D g2d) {
 
-        g2d.setColor(new Color(0, 32, 48));
-        g2d.fillRect(50, scrsize / 2 - 30, scrsize - 100, 50);
-        g2d.setColor(Color.white);
-        g2d.drawRect(50, scrsize / 2 - 30, scrsize - 100, 50);
+        //set the color of the start screen using rgb
+        g2d.setColor(new Color(0, 0, 0));
+        //set the dimensions of the start screen
+        g2d.fillRect(0, 0, scrsize - 1, scrsize + 32);
+        //sets the border color and size
+        g2d.setColor(Color.ORANGE);
+        g2d.drawRect(1, 1, scrsize - 1, scrsize + 32);
 
-        String s = "Press s to start.";
-        Font small = new Font("Helvetica", Font.BOLD, 14);
+        //strings to display on start screen and font settings
+        String ent = "Press 'Enter' To Start The Game";
+        String pau1 = "While In-Game, Press 'Spacebar'";
+        String pau2 = "To Pause And Unpause The Game";
+        String res = "To Restart The Game, Press '0' While Playing";
+        String highScore = "HIGH SCORE: ";
+        
+        Font small = new Font("Comic-Sans", Font.BOLD, 14);
         FontMetrics metr = this.getFontMetrics(small);
 
-        g2d.setColor(Color.white);
+        //this is where the string is created and put on the screen:TODO add in and adjust the new strings
+        g2d.setColor(Color.WHITE);
         g2d.setFont(small);
-        g2d.drawString(s, (scrsize - metr.stringWidth(s)) / 2, scrsize / 2);
+        g2d.drawString(ent, (scrsize - metr.stringWidth(ent)) / 2, scrsize / 6);
+        
+        g2d.drawString(pau1, (scrsize - metr.stringWidth(ent)) / 2, 5 * (scrsize / 12));
+        
+        g2d.drawString(pau2, (scrsize - metr.stringWidth(ent)) / 2, 6 * (scrsize / 12));
+        
+        g2d.drawString(res, (scrsize - metr.stringWidth(ent)) / 4, 7 * (scrsize / 12));
+        
+        g2d.drawString(highScore, (scrsize - metr.stringWidth(ent)) / 2, 5 * (scrsize / 6));
     }
 
     private void drawScore(Graphics2D g) {
@@ -212,6 +284,7 @@ public class Board extends JPanel implements ActionListener {
         }
     }
 
+    //function to be modified for the continue system
     private void death() {
 
         pacsleft--;
@@ -296,11 +369,13 @@ public class Board extends JPanel implements ActionListener {
         }
     }
 
+    //function to draw the ghosts:TODO add in all ghosts
     private void drawGhost(Graphics2D g2d, int x, int y) {
 
-        g2d.drawImage(ghost, x, y, this);
+        g2d.drawImage(ghost1, x, y, this);
     }
 
+    //function to move pacman:LEAVE
     private void movePacman() {
 
         int pos;
@@ -347,10 +422,11 @@ public class Board extends JPanel implements ActionListener {
         pacmany = pacmany + pacmanspeed * pacmandy;
     }
 
+    //functions to draw pacman:LEAVE
     private void drawPacman(Graphics2D g2d) {
 
         if (viewdx == -1) {
-            drawPacnanLeft(g2d);
+            drawPacmanLeft(g2d);
         } else if (viewdx == 1) {
             drawPacmanRight(g2d);
         } else if (viewdy == -1) {
@@ -396,7 +472,7 @@ public class Board extends JPanel implements ActionListener {
         }
     }
 
-    private void drawPacnanLeft(Graphics2D g2d) {
+    private void drawPacmanLeft(Graphics2D g2d) {
 
         switch (pacmananimpos) {
             case 1:
@@ -430,7 +506,7 @@ public class Board extends JPanel implements ActionListener {
                 g2d.drawImage(pacman1, pacmanx + 1, pacmany + 1, this);
                 break;
         }
-    }
+    }//end of functions to draw pacman:LEAVE
 
     private void drawMaze(Graphics2D g2d) {
 
@@ -443,25 +519,25 @@ public class Board extends JPanel implements ActionListener {
                 g2d.setColor(mazecolor);
                 g2d.setStroke(new BasicStroke(2));
 
-                if ((screendata[i] & 1) != 0) { 
+                if ((screendata[i] & 1) != 0) {
                     g2d.drawLine(x, y, x, y + blocksize - 1);
                 }
 
-                if ((screendata[i] & 2) != 0) { 
+                if ((screendata[i] & 2) != 0) {
                     g2d.drawLine(x, y, x + blocksize - 1, y);
                 }
 
-                if ((screendata[i] & 4) != 0) { 
+                if ((screendata[i] & 4) != 0) {
                     g2d.drawLine(x + blocksize - 1, y, x + blocksize - 1,
                             y + blocksize - 1);
                 }
 
-                if ((screendata[i] & 8) != 0) { 
+                if ((screendata[i] & 8) != 0) {
                     g2d.drawLine(x, y + blocksize - 1, x + blocksize - 1,
                             y + blocksize - 1);
                 }
 
-                if ((screendata[i] & 16) != 0) { 
+                if ((screendata[i] & 16) != 0) {
                     g2d.setColor(dotcolor);
                     g2d.fillRect(x + 11, y + 11, 2, 2);
                 }
@@ -476,7 +552,7 @@ public class Board extends JPanel implements ActionListener {
         pacsleft = 3;
         score = 0;
         initLevel();
-        nrofghosts = 6;
+        nrofghosts = 4;
         currentspeed = 3;
     }
 
@@ -484,7 +560,7 @@ public class Board extends JPanel implements ActionListener {
 
         int i;
         for (i = 0; i < nrofblocks * nrofblocks; i++) {
-            screendata[i] = leveldata[i];
+            screendata[i] = leveldata1[i];
         }
 
         continueLevel();
@@ -523,9 +599,10 @@ public class Board extends JPanel implements ActionListener {
         dying = false;
     }
 
+    //function where the ghosts and pacman images are loaded and set for drawing purposes:TODO make ghost2,3,4
     private void loadImages() {
 
-        ghost = new ImageIcon("images/Ghost1.gif").getImage();
+        ghost1 = new ImageIcon("images/Ghost1.gif").getImage();
         pacman1 = new ImageIcon("images/PacMan1.gif").getImage();
         pacman2up = new ImageIcon("images/PacMan2up.gif").getImage();
         pacman3up = new ImageIcon("images/PacMan3up.gif").getImage();
@@ -542,6 +619,7 @@ public class Board extends JPanel implements ActionListener {
 
     }
 
+    //first instance of the graphics g, here the super method is called and then passed to dodrawing method:LEAVE
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -549,28 +627,35 @@ public class Board extends JPanel implements ActionListener {
         doDrawing(g);
     }
 
+    //function where the graphics g is converted to a 2D image and then passed to the necessary methods:TODO pause screen
     private void doDrawing(Graphics g) {
 
+        //conversion of the graphics object
         Graphics2D g2d = (Graphics2D) g;
 
-        g2d.setColor(Color.black);
+        //set the background color of the board to black and fill the set dimension
+        g2d.setColor(Color.BLACK);
         g2d.fillRect(0, 0, d.width, d.height);
 
+        //call the functions to draw the maze, the score, and animate pacman
         drawMaze(g2d);
         drawScore(g2d);
         doAnim();
 
+        //
         if (ingame) {
             playGame(g2d);
         } else {
             showIntroScreen(g2d);
         }
 
+        //
         g2d.drawImage(ii, 5, 5, this);
         Toolkit.getDefaultToolkit().sync();
         g2d.dispose();
     }
 
+    //class that houses the methods to handle changes performed by the keyboard:LEAVE
     class TAdapter extends KeyAdapter {
 
         @Override
@@ -578,6 +663,7 @@ public class Board extends JPanel implements ActionListener {
 
             int key = e.getKeyCode();
 
+            //if the game is in session, change position based on the key pressed:LEAVE
             if (ingame) {
                 if (key == KeyEvent.VK_LEFT) {
                     reqdx = -1;
@@ -591,26 +677,27 @@ public class Board extends JPanel implements ActionListener {
                 } else if (key == KeyEvent.VK_DOWN) {
                     reqdx = 0;
                     reqdy = 1;
-                } else if (key == KeyEvent.VK_ESCAPE && timer.isRunning()) {
+                } else if (key == KeyEvent.VK_0 && timer.isRunning()) {
+                    //can end the game by pressing 0:LEAVE
                     ingame = false;
-                } else if (key == KeyEvent.VK_PAUSE) {
+                } else if (key == KeyEvent.VK_SPACE) {
+                    //can pause the game by pressing spacebar:TODO add pause screen
                     if (timer.isRunning()) {
                         timer.stop();
                     } else {
                         timer.start();
                     }
                 }
-            } else {
-                if (key == 's' || key == 'S') {
-                    ingame = true;
-                    initGame();
-                }
+            } else if (key == KeyEvent.VK_ENTER) {
+                //start the game by pressing the enter key:LEAVE
+                ingame = true;
+                initGame();
             }
         }
 
+        //overridden method to set the movement to zero if a key is no longer being pressed:LEAVE
         @Override
         public void keyReleased(KeyEvent e) {
-
             int key = e.getKeyCode();
 
             if (key == Event.LEFT || key == Event.RIGHT
@@ -621,9 +708,9 @@ public class Board extends JPanel implements ActionListener {
         }
     }
 
+    //overridden method to repaint the screen as dots are eaten and the character moves:LEAVE
     @Override
     public void actionPerformed(ActionEvent e) {
-
         repaint();
     }
 }

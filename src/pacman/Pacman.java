@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package pacman;
 
 import java.awt.EventQueue;
@@ -10,30 +5,26 @@ import javax.swing.JFrame;
 
 public class Pacman extends JFrame {
 
+    //constructor to create the pacman object and call a function to initialize important variables:LEAVE
     public Pacman() {
-        
         initUI();
     }
-    
+
+    //function to initialize the board by adding a new board object, setting the title, and setting the size:LEAVE
     private void initUI() {
-        
         add(new Board());
-        setTitle("Pacman");
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setSize(380, 420);
-        setLocationRelativeTo(null);
-        setVisible(true);        
+        this.setTitle("Ed's Pac-Man");
+        this.setDefaultCloseOperation(EXIT_ON_CLOSE);
+        this.setSize(383, 450);
+        this.setLocationRelativeTo(null);
+        this.setVisible(true);
     }
 
+    //main method where pacman object is created and made visible:LEAVE
     public static void main(String[] args) {
 
-        EventQueue.invokeLater(new Runnable() {
-
-            @Override
-            public void run() {
-                Pacman ex = new Pacman();
-                ex.setVisible(true);
-            }
+        EventQueue.invokeLater(() -> {
+            Pacman ex = new Pacman();
         });
     }
 }
