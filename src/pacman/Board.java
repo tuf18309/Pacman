@@ -23,7 +23,7 @@ import javax.swing.Timer;
 public class Board extends JPanel implements ActionListener {
 
     //create a dimension and set the font of the score message at the bottom
-    private Dimension d;
+    private Dimension dim;
     private final Font smallfont = new Font("Comic-Sans", Font.BOLD, 14);
 
     //variables to store image, dot color, and maze color
@@ -46,7 +46,7 @@ public class Board extends JPanel implements ActionListener {
     private final int maxghosts = 4;
     private final int pacmanspeed = 6;
 
-    //
+    //variables to help determine position in the maze
     private int pacanimcount = pacanimdelay;
     private int pacanimdir = 1;
     private int pacmananimpos = 0;
@@ -56,7 +56,7 @@ public class Board extends JPanel implements ActionListener {
     private int[] ghostx, ghosty, ghostdx, ghostdy, ghostspeed;
 
     //variables to store the pictures of the ghosts and of pacman as he moves around
-    //TODO add multiple ghost images and create new functions to correspond with that
+    //TODO add in option for MRS PACMAN - maybe special ghost for extreme mode
     private Image ghost1, ghost2, ghost3, ghost4;
     private Image pacman1, pacman2up, pacman2left, pacman2right, pacman2down;
     private Image pacman3up, pacman3down, pacman3left, pacman3right;
@@ -150,7 +150,7 @@ public class Board extends JPanel implements ActionListener {
         screendata = new short[nrofblocks * nrofblocks];
         //now color is blue
         mazecolor = new Color(5, 5, 200);
-        d = new Dimension(400, 400);
+        dim = new Dimension(400, 400);
 
         ghostx = new int[maxghosts];
         ghostdx = new int[maxghosts];
@@ -284,7 +284,7 @@ public class Board extends JPanel implements ActionListener {
         }
     }
 
-    //function to be modified for the continue system
+    //TODO:function to be modified for the continue system
     private void death() {
 
         pacsleft--;
@@ -296,6 +296,7 @@ public class Board extends JPanel implements ActionListener {
         continueLevel();
     }
 
+    //function to control how the ghosts move
     private void moveGhosts(Graphics2D g2d) {
 
         short i;
@@ -369,7 +370,7 @@ public class Board extends JPanel implements ActionListener {
         }
     }
 
-    //function to draw the ghosts:TODO add in all ghosts
+    //function to draw the ghosts
     private void drawGhost(Graphics2D g2d, int x, int y, int i) {
 
         switch (i) {
@@ -435,7 +436,7 @@ public class Board extends JPanel implements ActionListener {
         pacmany = pacmany + pacmanspeed * pacmandy;
     }
 
-    //functions to draw pacman:LEAVE
+    //functions to draw pacman:TODO possibly add in option for MRS PACMAN using this
     private void drawPacman(Graphics2D g2d) {
 
         if (viewdx == -1) {
@@ -561,7 +562,6 @@ public class Board extends JPanel implements ActionListener {
     }
 
     private void initGame() {
-
         pacsleft = 3;
         score = 0;
         initLevel();
@@ -571,11 +571,11 @@ public class Board extends JPanel implements ActionListener {
 
     private void initLevel() {
 
+        //TODO: modify code to retrieve leveldata from object of level
         int i;
         for (i = 0; i < nrofblocks * nrofblocks; i++) {
             screendata[i] = leveldata1[i];
         }
-
         continueLevel();
     }
 
@@ -612,7 +612,7 @@ public class Board extends JPanel implements ActionListener {
         dying = false;
     }
 
-    //function where the ghosts and pacman images are loaded and set for drawing purposes:TODO make ghost2,3,4
+    //function where the ghosts and pacman images are loaded and set for drawing purposes
     private void loadImages() {
 
         ghost1 = new ImageIcon("images/Ghost1.gif").getImage();
@@ -632,14 +632,12 @@ public class Board extends JPanel implements ActionListener {
         pacman2right = new ImageIcon("images/PacMan2right.gif").getImage();
         pacman3right = new ImageIcon("images/PacMan3right.gif").getImage();
         pacman4right = new ImageIcon("images/PacMan4right.gif").getImage();
-
     }
 
     //first instance of the graphics g, here the super method is called and then passed to dodrawing method:LEAVE
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-
         doDrawing(g);
     }
 
@@ -651,21 +649,21 @@ public class Board extends JPanel implements ActionListener {
 
         //set the background color of the board to black and fill the set dimension
         g2d.setColor(Color.BLACK);
-        g2d.fillRect(0, 0, d.width, d.height);
+        g2d.fillRect(0, 0, dim.width, dim.height);
 
         //call the functions to draw the maze, the score, and animate pacman
         drawMaze(g2d);
         drawScore(g2d);
         doAnim();
 
-        //
+        //TODO create boolean and use it to determine whether in the help screen or not
         if (ingame) {
             playGame(g2d);
         } else {
             showIntroScreen(g2d);
         }
 
-        //
+        //LEAVE
         g2d.drawImage(ii, 5, 5, this);
         Toolkit.getDefaultToolkit().sync();
         g2d.dispose();
@@ -694,7 +692,7 @@ public class Board extends JPanel implements ActionListener {
                     reqdx = 0;
                     reqdy = 1;
                 } else if (key == KeyEvent.VK_0 && timer.isRunning()) {
-                    //can end the game by pressing 0:LEAVE
+                    //can end the game by pressing 0:TODO write 'are you sure message?'
                     ingame = false;
                 } else if (key == KeyEvent.VK_SPACE) {
                     //can pause the game by pressing spacebar:TODO add pause screen
@@ -704,10 +702,15 @@ public class Board extends JPanel implements ActionListener {
                         timer.start();
                     }
                 }
-            } else if (key == KeyEvent.VK_ENTER) {
-                //start the game by pressing the enter key:LEAVE
-                ingame = true;
-                initGame();
+            } else if (!ingame) {
+                if (key == KeyEvent.VK_ENTER) {
+                    //start the game by pressing the enter key:LEAVE
+                    ingame = true;
+                    initGame();
+                } else if (key == KeyEvent.VK_H) {
+                    //write function to display instruction screen and bring other statements in there:TODO
+                    System.out.println("Help Screen Activated");
+                }
             }
         }
 
