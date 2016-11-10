@@ -66,7 +66,7 @@ public class Board extends JPanel implements ActionListener {
     private int pacmanx, pacmany, pacmandx, pacmandy;
     private int reqdx, reqdy, viewdx, viewdy;
 
-    //level data for the three levels
+    //level data for the three levels:TODO place into class
     private final short leveldata1[] = {
         19, 26, 26, 26, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 22,
         21, 0, 0, 0, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
@@ -204,7 +204,7 @@ public class Board extends JPanel implements ActionListener {
         }
     }
 
-    //function which creates the start screen:TODO finish custom start screen by changing displayed strings
+    //TODO:function which creates the start screen:TODO finish custom start screen by changing displayed strings
     private void showIntroScreen(Graphics2D g2d) {
 
         //set the color of the start screen using rgb
@@ -225,7 +225,8 @@ public class Board extends JPanel implements ActionListener {
         Font small = new Font("Comic-Sans", Font.BOLD, 14);
         FontMetrics metr = this.getFontMetrics(small);
 
-        //this is where the string is created and put on the screen:TODO add in and adjust the new strings
+        //this is where the string is created and put on the screen:TODO replace instructions with image
+        //put instructions into new method screen
         g2d.setColor(Color.WHITE);
         g2d.setFont(small);
         g2d.drawString(ent, (scrsize - metr.stringWidth(ent)) / 2, scrsize / 6);
@@ -237,6 +238,10 @@ public class Board extends JPanel implements ActionListener {
         g2d.drawString(res, (scrsize - metr.stringWidth(ent)) / 4, 7 * (scrsize / 12));
 
         g2d.drawString(highScore, (scrsize - metr.stringWidth(ent)) / 2, 5 * (scrsize / 6));
+    }
+    
+    private void showHelpScreen(Graphics2D g2d){
+    
     }
 
     private void drawScore(Graphics2D g) {
