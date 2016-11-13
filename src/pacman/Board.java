@@ -15,6 +15,14 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
@@ -129,6 +137,7 @@ public class Board extends JPanel implements ActionListener {
     private int currentspeed = 3;
     private short[] screendata;
     private Timer timer;
+    private int high;
 
     //constructor for the board to be created and initialized
     public Board() {
@@ -189,7 +198,7 @@ public class Board extends JPanel implements ActionListener {
     }
 
     //
-    private void playGame(Graphics2D g2d) {
+    private void playGame(Graphics2D g2d) throws FileNotFoundException {
 
         if (dying) {
 
@@ -205,7 +214,7 @@ public class Board extends JPanel implements ActionListener {
     }
 
     //TODO:function which creates the start screen:TODO finish custom start screen by changing displayed strings
-    private void showIntroScreen(Graphics2D g2d) {
+    private void showIntroScreen(Graphics2D g2d) throws FileNotFoundException {
 
         //set the color of the start screen using rgb
         g2d.setColor(new Color(0, 0, 0));
@@ -220,7 +229,11 @@ public class Board extends JPanel implements ActionListener {
         String pau1 = "While In-Game, Press 'Spacebar'";
         String pau2 = "To Pause And Unpause The Game";
         String res = "To Restart The Game, Press '0' While Playing";
-        String highScore = "HIGH SCORE: ";
+
+        Scanner tFile = new Scanner(new FileReader("hi-score.txt"));
+        high = tFile.nextInt();
+
+        String highScore = "HIGH SCORE: " + high;
 
         Font small = new Font("Comic-Sans", Font.BOLD, 14);
         FontMetrics metr = this.getFontMetrics(small);
@@ -239,9 +252,9 @@ public class Board extends JPanel implements ActionListener {
 
         g2d.drawString(highScore, (scrsize - metr.stringWidth(ent)) / 2, 5 * (scrsize / 6));
     }
-    
-    private void showHelpScreen(Graphics2D g2d){
-    
+
+    private void showHelpScreen(Graphics2D g2d) {
+
     }
 
     private void drawScore(Graphics2D g) {
@@ -295,6 +308,19 @@ public class Board extends JPanel implements ActionListener {
         pacsleft--;
 
         if (pacsleft == 0) {
+            if (score > high) {
+                String fileName = "hi-score.txt";
+                try {
+                    FileWriter fileWriter = new FileWriter(fileName);
+                    try (BufferedWriter bufferedWriter = new BufferedWriter(fileWriter)) {
+                        bufferedWriter.write(String.valueOf(score));
+                    }
+                } catch (IOException ex) {
+                    System.out.println(
+                            "Error writing to file '" + fileName + "'");
+                }
+
+            }
             ingame = false;
         }
 
@@ -643,11 +669,15 @@ public class Board extends JPanel implements ActionListener {
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        doDrawing(g);
+        try {
+            doDrawing(g);
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(Board.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     //function where the graphics g is converted to a 2D image and then passed to the necessary methods:TODO pause screen
-    private void doDrawing(Graphics g) {
+    private void doDrawing(Graphics g) throws FileNotFoundException {
 
         //conversion of the graphics object
         Graphics2D g2d = (Graphics2D) g;
