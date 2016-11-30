@@ -25,8 +25,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.swing.ImageIcon;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.Timer;
+import javax.swing.UIManager;
 
 public class Board extends JPanel implements ActionListener {
 
@@ -44,7 +46,7 @@ public class Board extends JPanel implements ActionListener {
     private boolean dying = false;
 
     //variables to determine the size of the level
-    private final int blocksize = 24;
+    private final int blocksize = BWD;
     private final int nrofblocks = 15;
     private final int scrsize = nrofblocks * blocksize;
 
@@ -65,6 +67,7 @@ public class Board extends JPanel implements ActionListener {
 
     //variables to store the pictures of the ghosts and of pacman as he moves around
     //TODO add in option for MRS PACMAN - maybe special ghost for extreme mode
+    private Image intro;
     private Image ghost1, ghost2, ghost3, ghost4;
     private Image pacman1, pacman2up, pacman2left, pacman2right, pacman2down;
     private Image pacman3up, pacman3down, pacman3left, pacman3right;
@@ -75,69 +78,80 @@ public class Board extends JPanel implements ActionListener {
     private int reqdx, reqdy, viewdx, viewdy;
 
     //level data for the three levels:TODO place into class
+    //TODO:comment explaining each of the abbreviations
+    //1 is left, 2 is top, 4 is right, 8 is bottom, 16 is dot, adding them combines the properties
+    private static final int E = 0, LW = 1, TW = 2, RW = 4, BW = 8, TLC = 3, TRC = 6, BLC = 9, BRC = 12, D = 16,
+            LWD = 17, TWD = 18, RWD = 20, BWD = 24, TLCD = 19, TRCD = 22, BLCD = 25, BRCD = 28,
+            LRWD = 21, TBWD = 26;
+
     private final short leveldata1[] = {
-        19, 26, 26, 26, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 22,
-        21, 0, 0, 0, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
-        21, 0, 0, 0, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
-        21, 0, 0, 0, 17, 16, 16, 24, 16, 16, 16, 16, 16, 16, 20,
-        17, 18, 18, 18, 16, 16, 20, 0, 17, 16, 16, 16, 16, 16, 20,
-        17, 16, 16, 16, 16, 16, 20, 0, 17, 16, 16, 16, 16, 24, 20,
-        25, 16, 16, 16, 24, 24, 28, 0, 25, 24, 24, 16, 20, 0, 21,
-        1, 17, 16, 20, 0, 0, 0, 0, 0, 0, 0, 17, 20, 0, 21,
-        1, 17, 16, 16, 18, 18, 22, 0, 19, 18, 18, 16, 20, 0, 21,
-        1, 17, 16, 16, 16, 16, 20, 0, 17, 16, 16, 16, 20, 0, 21,
-        1, 17, 16, 16, 16, 16, 20, 0, 17, 16, 16, 16, 20, 0, 21,
-        1, 17, 16, 16, 16, 16, 16, 18, 16, 16, 16, 16, 20, 0, 21,
-        1, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20, 0, 21,
-        1, 25, 24, 24, 24, 24, 24, 24, 24, 24, 16, 16, 16, 18, 20,
-        9, 8, 8, 8, 8, 8, 8, 8, 8, 8, 25, 24, 24, 24, 28
+        TLCD, TBWD, TBWD, TBWD, TWD, TWD, TWD, TWD, TWD, TWD, TWD, TWD, TWD, TWD, TRCD,
+        LRWD, E, E, E, LWD, D, D, D, D, D, D, D, D, D, RWD,
+        LRWD, E, E, E, LWD, D, D, D, D, D, D, D, D, D, RWD,
+        LRWD, E, E, E, LWD, D, D, BWD, D, D, D, D, D, D, RWD,
+        LWD, TWD, TWD, TWD, D, D, RWD, E, LWD, D, D, D, D, D, RWD,
+        LWD, D, D, D, D, D, RWD, E, LWD, D, D, D, D, BWD, RWD,
+        BLCD, D, D, D, BWD, BWD, BRCD, E, BLCD, BWD, BWD, D, RWD, E, LRWD,
+        LW, LWD, D, RWD, E, E, E, E, E, E, E, LWD, RWD, E, LRWD,
+        LW, LWD, D, D, TWD, TWD, TRCD, E, TLCD, TWD, TWD, D, RWD, E, LRWD,
+        LW, LWD, D, D, D, D, RWD, E, LWD, D, D, D, RWD, E, LRWD,
+        LW, LWD, D, D, D, D, RWD, E, LWD, D, D, D, RWD, E, LRWD,
+        LW, LWD, D, D, D, D, D, TWD, D, D, D, D, RWD, E, LRWD,
+        LW, LWD, D, D, D, D, D, D, D, D, D, D, RWD, E, LRWD,
+        LW, BLCD, BWD, BWD, BWD, BWD, BWD, BWD, BWD, BWD, D, D, D, TWD, RWD,
+        BLC, BW, BW, BW, BW, BW, BW, BW, BW, BW, BLCD, BWD, BWD, BWD, BRCD
     };
 
     private final short leveldata2[] = {
-        19, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 22,
-        21, 0, 0, 0, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
-        21, 0, 0, 0, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
-        21, 0, 0, 0, 17, 16, 16, 24, 16, 16, 16, 16, 16, 16, 20,
-        17, 18, 18, 18, 16, 16, 20, 0, 17, 16, 16, 16, 16, 16, 20,
-        17, 16, 16, 16, 16, 16, 20, 0, 17, 16, 16, 16, 16, 24, 20,
-        25, 16, 16, 16, 24, 24, 28, 0, 25, 24, 24, 16, 20, 0, 21,
-        1, 17, 16, 20, 0, 0, 0, 0, 0, 0, 0, 17, 20, 0, 21,
-        1, 17, 16, 16, 18, 18, 22, 0, 19, 18, 18, 16, 20, 0, 21,
-        1, 17, 16, 16, 16, 16, 20, 0, 17, 16, 16, 16, 20, 0, 21,
-        1, 17, 16, 16, 16, 16, 20, 0, 17, 16, 16, 16, 20, 0, 21,
-        1, 17, 16, 16, 16, 16, 16, 18, 16, 16, 16, 16, 20, 0, 21,
-        1, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20, 0, 21,
-        1, 25, 24, 24, 24, 24, 24, 24, 24, 24, 16, 16, 16, 18, 20,
-        9, 8, 8, 8, 8, 8, 8, 8, 8, 8, 25, 24, 24, 24, 28
+        TLCD, TBWD, TBWD, TBWD, TWD, TWD, TWD, TWD, TWD, TWD, TWD, TBWD, TBWD, TBWD, TRCD,
+        LRWD, E, E, E, LWD, D, D, D, D, D, RWD, E, E, E, LRWD,
+        LRWD, E, E, E, LWD, D, D, D, D, D, RWD, E, E, E, LRWD,
+        LRWD, E, E, E, LWD, D, D, D, D, D, RWD, E, E, E, LRWD,
+        LWD, TWD, TWD, TWD, D, D, D, D, D, D, D, TWD, TWD, TWD, RWD,
+        LWD, D, D, D, D, D, D, BWD, BWD, D, D, D, D, D, RWD,
+        LWD, D, D, D, D, D, BRCD, E, E, BLCD, D, D, D, D, RWD,
+        LWD, D, D, D, D, RWD, E, E, E, E, LWD, D, D, D, RWD,
+        LWD, D, D, D, D, RWD, E, E, E, E, LWD, D, D, D, RWD,
+        LWD, D, D, D, D, D, TRCD, E, E, TLCD, D, D, D, D, RWD,
+        LWD, BWD, BWD, BWD, D, D, D, TWD, TWD, D, D, BWD, BWD, BWD, RWD,
+        LRWD, E, E, E, LWD, D, D, D, D, D, RWD, E, E, E, LRWD,
+        LRWD, E, E, E, LWD, D, D, D, D, D, RWD, E, E, E, LRWD,
+        LRWD, E, E, E, LWD, D, D, D, D, D, RWD, E, E, E, LRWD,
+        BLCD, TBWD, TBWD, TBWD, BWD, BWD, BWD, BWD, BWD, BWD, BWD, TBWD, TBWD, TBWD, BRCD
     };
 
     private final short leveldata3[] = {
-        19, 26, 26, 26, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 22,
-        21, 0, 0, 0, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
-        21, 0, 0, 0, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
-        21, 0, 0, 0, 17, 16, 16, 24, 16, 16, 16, 16, 16, 16, 20,
-        17, 18, 18, 18, 16, 16, 20, 0, 17, 16, 16, 16, 16, 16, 20,
-        17, 16, 16, 16, 16, 16, 20, 0, 17, 16, 16, 16, 16, 24, 20,
-        25, 16, 16, 16, 24, 24, 28, 0, 25, 24, 24, 16, 20, 0, 21,
-        1, 17, 16, 20, 0, 0, 0, 0, 0, 0, 0, 17, 20, 0, 21,
-        1, 17, 16, 16, 18, 18, 22, 0, 19, 18, 18, 16, 20, 0, 21,
-        1, 17, 16, 16, 16, 16, 20, 0, 17, 16, 16, 16, 20, 0, 21,
-        1, 17, 16, 16, 16, 16, 20, 0, 17, 16, 16, 16, 20, 0, 21,
-        1, 17, 16, 16, 16, 16, 16, 18, 16, 16, 16, 16, 20, 0, 21,
-        1, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20, 0, 21,
-        1, 25, 24, 24, 24, 24, 24, 24, 24, 24, 16, 16, 16, 18, 20,
-        9, 8, 8, 8, 8, 8, 8, 8, 8, 8, 25, 24, 24, 24, 28
+        TLCD, TWD, TWD, TWD, TWD, TWD, TWD, TWD, TWD, TWD, TWD, TWD, TWD, TWD, TRCD,
+        LWD, D, D, D, D, D, D, D, D, D, D, D, D, D, RWD,
+        LWD, D, D, D, D, D, D, D, D, D, D, D, D, D, RWD,
+        LWD, D, D, D, D, D, D, D, D, D, D, D, D, D, RWD,
+        LWD, D, D, D, D, D, D, D, D, D, D, D, D, D, RWD,
+        LWD, D, D, D, D, D, D, D, D, D, D, D, D, D, RWD,
+        LWD, D, D, D, D, D, D, D, D, D, D, D, D, D, RWD,
+        LWD, D, D, D, D, D, D, D, D, D, D, D, D, D, RWD,
+        LWD, D, D, D, D, D, D, D, D, D, D, D, D, D, RWD,
+        LWD, D, D, D, D, D, D, D, D, D, D, D, D, D, RWD,
+        LWD, D, D, D, D, D, D, D, D, D, D, D, D, D, RWD,
+        LWD, D, D, D, D, D, D, D, D, D, D, D, D, D, RWD,
+        LWD, D, D, D, D, D, D, D, D, D, D, D, D, D, RWD,
+        LWD, D, D, D, D, D, D, D, D, D, D, D, D, D, RWD,
+        BLCD, BWD, BWD, BWD, BWD, BWD, BWD, BWD, BWD, BWD, BWD, BWD, BWD, BWD, BRCD
     };
 
+    int levelCount = 1;
+
     //possible speeds for the ghosts
-    private final int validspeeds[] = {1, 2, 3, 4, 6, 8};
+    private final int validspeeds[] = {1, 2, 3, 4, 5, 6, 7, 8};
     private final int maxspeed = 6;
 
     //speed given to ghosts so that they are increasingly fast and the variable to hold level array and a timer
-    private int currentspeed = 3;
+    private int currentspeed = 1;
     private short[] screendata;
     private Timer timer;
     private int high;
+
+    //boolean for continue the game
+    private boolean cont, wait;
 
     //constructor for the board to be created and initialized
     public Board() {
@@ -198,7 +212,7 @@ public class Board extends JPanel implements ActionListener {
     }
 
     //
-    private void playGame(Graphics2D g2d) throws FileNotFoundException {
+    private void playGame(Graphics2D g2d) throws FileNotFoundException, InterruptedException {
 
         if (dying) {
 
@@ -226,9 +240,7 @@ public class Board extends JPanel implements ActionListener {
 
         //strings to display on start screen and font settings
         String ent = "Press 'Enter' To Start The Game";
-        String pau1 = "While In-Game, Press 'Spacebar'";
-        String pau2 = "To Pause And Unpause The Game";
-        String res = "To Restart The Game, Press '0' While Playing";
+        String help = "To See The Help Page, Press 'H'";
 
         Scanner tFile = new Scanner(new FileReader("hi-score.txt"));
         high = tFile.nextInt();
@@ -244,12 +256,12 @@ public class Board extends JPanel implements ActionListener {
         g2d.setFont(small);
         g2d.drawString(ent, (scrsize - metr.stringWidth(ent)) / 2, scrsize / 6);
 
-        g2d.drawString(pau1, (scrsize - metr.stringWidth(ent)) / 2, 5 * (scrsize / 12));
-
-        g2d.drawString(pau2, (scrsize - metr.stringWidth(ent)) / 2, 6 * (scrsize / 12));
-
-        g2d.drawString(res, (scrsize - metr.stringWidth(ent)) / 4, 7 * (scrsize / 12));
-
+        g2d.drawString(help, (scrsize - metr.stringWidth(ent)) / 2, (scrsize / 6) + 20);
+        
+        g2d.drawImage(intro, (scrsize - metr.stringWidth(ent) - 55) / 2, (scrsize / 3), this);
+        
+        Font large = new Font("Comic-Sans", Font.BOLD, 24);
+        g2d.setFont(large);
         g2d.drawString(highScore, (scrsize - metr.stringWidth(ent)) / 2, 5 * (scrsize / 6));
     }
 
@@ -298,32 +310,44 @@ public class Board extends JPanel implements ActionListener {
                 currentspeed++;
             }
 
+            if (levelCount == 3) {
+                levelCount = 1;
+            } else {
+                levelCount++;
+            }
             initLevel();
         }
     }
 
     //TODO:function to be modified for the continue system
-    private void death() {
+    private void death() throws InterruptedException {
 
         pacsleft--;
 
         if (pacsleft == 0) {
-            if (score > high) {
-                String fileName = "hi-score.txt";
-                try {
-                    FileWriter fileWriter = new FileWriter(fileName);
-                    try (BufferedWriter bufferedWriter = new BufferedWriter(fileWriter)) {
-                        bufferedWriter.write(String.valueOf(score));
+            UIManager.put("OptionPane.minimumSize", new Dimension(359, 408));
+            UIManager.put("OptionPane.messageFont", new Font("System", Font.PLAIN, 24));
+            int choice = JOptionPane.showConfirmDialog(null, "   Would you like to continue?", "                      GAME OVER", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE);
+            if (choice == 0) {
+                pacsleft = 3;
+                Thread.sleep(1000);
+            } else {
+                if (score > high) {
+                    String fileName = "hi-score.txt";
+                    try {
+                        FileWriter fileWriter = new FileWriter(fileName);
+                        try (BufferedWriter bufferedWriter = new BufferedWriter(fileWriter)) {
+                            bufferedWriter.write(String.valueOf(score));
+                        }
+                    } catch (IOException ex) {
+                        System.out.println(
+                                "Error writing to file '" + fileName + "'");
                     }
-                } catch (IOException ex) {
-                    System.out.println(
-                            "Error writing to file '" + fileName + "'");
+
                 }
-
+                ingame = false;
             }
-            ingame = false;
         }
-
         continueLevel();
     }
 
@@ -437,7 +461,7 @@ public class Board extends JPanel implements ActionListener {
             pos = pacmanx / blocksize + nrofblocks * (int) (pacmany / blocksize);
             ch = screendata[pos];
 
-            if ((ch & 16) != 0) {
+            if ((ch & D) != 0) {
                 screendata[pos] = (short) (ch & 15);
                 score++;
             }
@@ -582,7 +606,7 @@ public class Board extends JPanel implements ActionListener {
                             y + blocksize - 1);
                 }
 
-                if ((screendata[i] & 16) != 0) {
+                if ((screendata[i] & D) != 0) {
                     g2d.setColor(dotcolor);
                     g2d.fillRect(x + 11, y + 11, 2, 2);
                 }
@@ -597,15 +621,26 @@ public class Board extends JPanel implements ActionListener {
         score = 0;
         initLevel();
         nrofghosts = 4;
-        currentspeed = 3;
+        currentspeed = 1;
     }
 
     private void initLevel() {
 
         //TODO: modify code to retrieve leveldata from object of level
         int i;
-        for (i = 0; i < nrofblocks * nrofblocks; i++) {
-            screendata[i] = leveldata1[i];
+        switch (levelCount) {
+            case 1:
+                for (i = 0; i < nrofblocks * nrofblocks; i++) {
+                    screendata[i] = leveldata1[i];
+                }   break;
+            case 2:
+                for (i = 0; i < nrofblocks * nrofblocks; i++) {
+                    screendata[i] = leveldata2[i];
+                }   break;
+            default:
+                for (i = 0; i < nrofblocks * nrofblocks; i++) {
+                    screendata[i] = leveldata3[i];
+                }   break;
         }
         continueLevel();
     }
@@ -645,7 +680,7 @@ public class Board extends JPanel implements ActionListener {
 
     //function where the ghosts and pacman images are loaded and set for drawing purposes
     private void loadImages() {
-
+        intro = new ImageIcon("images/Intro.gif").getImage();
         ghost1 = new ImageIcon("images/Ghost1.gif").getImage();
         ghost2 = new ImageIcon("images/Ghost2.gif").getImage();
         ghost3 = new ImageIcon("images/Ghost3.gif").getImage();
@@ -673,11 +708,13 @@ public class Board extends JPanel implements ActionListener {
             doDrawing(g);
         } catch (FileNotFoundException ex) {
             Logger.getLogger(Board.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(Board.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     //function where the graphics g is converted to a 2D image and then passed to the necessary methods:TODO pause screen
-    private void doDrawing(Graphics g) throws FileNotFoundException {
+    private void doDrawing(Graphics g) throws FileNotFoundException, InterruptedException {
 
         //conversion of the graphics object
         Graphics2D g2d = (Graphics2D) g;
@@ -726,6 +763,10 @@ public class Board extends JPanel implements ActionListener {
                 } else if (key == KeyEvent.VK_DOWN) {
                     reqdx = 0;
                     reqdy = 1;
+                } else if (key == KeyEvent.VK_Y) {
+                    cont = true;
+                } else if (key == KeyEvent.VK_N) {
+                    cont = false;
                 } else if (key == KeyEvent.VK_0 && timer.isRunning()) {
                     //can end the game by pressing 0:TODO write 'are you sure message?'
                     ingame = false;
@@ -744,7 +785,12 @@ public class Board extends JPanel implements ActionListener {
                     initGame();
                 } else if (key == KeyEvent.VK_H) {
                     //write function to display instruction screen and bring other statements in there:TODO
-                    System.out.println("Help Screen Activated");
+                    //System.out.println("Help Screen Activated");
+                    JOptionPane.showConfirmDialog(null, "The objective of the game is simple: collect all dots in the maze\n"
+                            + "Use the arrow keys to move Pac-Man in the corresponding direction.\n"
+                            + "Press the spacebar while in game to pause and unpause play.\n"
+                            + "Press the 0 key to end the game and return to the menu.\n"
+                            ,"                      INSTRUCTIONS", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
                 }
             }
         }
