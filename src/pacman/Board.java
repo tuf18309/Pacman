@@ -1,6 +1,6 @@
 package pacman;
 
-//necessary imports for the program
+//necessary imports of libraries for the program
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -23,30 +23,29 @@ import java.io.IOException;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 import javax.swing.UIManager;
 
+//extension of jpanel to create the game's frame, implementation of actionlistener for responding to events
 public class Board extends JPanel implements ActionListener {
 
-    //create a dimension and set the font of the score message at the bottom
-    private Dimension dim;
+    //create a dimension for the frame and set the font of the score message at the bottom
+    private Dimension dim = new Dimension(400, 400);
     private final Font smallfont = new Font("Comic-Sans", Font.BOLD, 14);
 
-    //variables to store image, dot color, and maze color
-    private Image ii;
+    //variables to store dot color, and maze color
     private final Color dotcolor = new Color(255, 255, 255);
-    private Color mazecolor;
+    private final Color mazecolor = new Color(5, 5, 200);
 
     //booleans to determine when the game is over
     private boolean ingame = false;
     private boolean dying = false;
 
     //variables to determine the size of the level
-    private final int blocksize = BWD;
+    private final int blocksize = 24;
     private final int nrofblocks = 15;
     private final int scrsize = nrofblocks * blocksize;
 
@@ -56,7 +55,7 @@ public class Board extends JPanel implements ActionListener {
     private final int maxghosts = 4;
     private final int pacmanspeed = 6;
 
-    //variables to help determine position in the maze
+    //variables to help determine position in the maze for pacman and the ghosts
     private int pacanimcount = pacanimdelay;
     private int pacanimdir = 1;
     private int pacmananimpos = 0;
@@ -65,79 +64,19 @@ public class Board extends JPanel implements ActionListener {
     private int[] dx, dy;
     private int[] ghostx, ghosty, ghostdx, ghostdy, ghostspeed;
 
-    //variables to store the pictures of the ghosts and of pacman as he moves around
-    //TODO add in option for MRS PACMAN - maybe special ghost for extreme mode
+    //variables to store the pictures of the intro, ghosts, fruits, and pacman as he moves around
     private Image intro;
+    private Image cherry, strawberry, apple, orange, empty;
     private Image ghost1, ghost2, ghost3, ghost4;
     private Image pacman1, pacman2up, pacman2left, pacman2right, pacman2down;
     private Image pacman3up, pacman3down, pacman3left, pacman3right;
     private Image pacman4up, pacman4down, pacman4left, pacman4right;
 
-    //coordinates of pacman
+    //coordinates of pacman as he moves
     private int pacmanx, pacmany, pacmandx, pacmandy;
     private int reqdx, reqdy, viewdx, viewdy;
 
-    //level data for the three levels:TODO place into class
-    //TODO:comment explaining each of the abbreviations
-    //1 is left, 2 is top, 4 is right, 8 is bottom, 16 is dot, adding them combines the properties
-    private static final int E = 0, LW = 1, TW = 2, RW = 4, BW = 8, TLC = 3, TRC = 6, BLC = 9, BRC = 12, D = 16,
-            LWD = 17, TWD = 18, RWD = 20, BWD = 24, TLCD = 19, TRCD = 22, BLCD = 25, BRCD = 28,
-            LRWD = 21, TBWD = 26;
-
-    private final short leveldata1[] = {
-        TLCD, TBWD, TBWD, TBWD, TWD, TWD, TWD, TWD, TWD, TWD, TWD, TWD, TWD, TWD, TRCD,
-        LRWD, E, E, E, LWD, D, D, D, D, D, D, D, D, D, RWD,
-        LRWD, E, E, E, LWD, D, D, D, D, D, D, D, D, D, RWD,
-        LRWD, E, E, E, LWD, D, D, BWD, D, D, D, D, D, D, RWD,
-        LWD, TWD, TWD, TWD, D, D, RWD, E, LWD, D, D, D, D, D, RWD,
-        LWD, D, D, D, D, D, RWD, E, LWD, D, D, D, D, BWD, RWD,
-        BLCD, D, D, D, BWD, BWD, BRCD, E, BLCD, BWD, BWD, D, RWD, E, LRWD,
-        LW, LWD, D, RWD, E, E, E, E, E, E, E, LWD, RWD, E, LRWD,
-        LW, LWD, D, D, TWD, TWD, TRCD, E, TLCD, TWD, TWD, D, RWD, E, LRWD,
-        LW, LWD, D, D, D, D, RWD, E, LWD, D, D, D, RWD, E, LRWD,
-        LW, LWD, D, D, D, D, RWD, E, LWD, D, D, D, RWD, E, LRWD,
-        LW, LWD, D, D, D, D, D, TWD, D, D, D, D, RWD, E, LRWD,
-        LW, LWD, D, D, D, D, D, D, D, D, D, D, RWD, E, LRWD,
-        LW, BLCD, BWD, BWD, BWD, BWD, BWD, BWD, BWD, BWD, D, D, D, TWD, RWD,
-        BLC, BW, BW, BW, BW, BW, BW, BW, BW, BW, BLCD, BWD, BWD, BWD, BRCD
-    };
-
-    private final short leveldata2[] = {
-        TLCD, TBWD, TBWD, TBWD, TWD, TWD, TWD, TWD, TWD, TWD, TWD, TBWD, TBWD, TBWD, TRCD,
-        LRWD, E, E, E, LWD, D, D, D, D, D, RWD, E, E, E, LRWD,
-        LRWD, E, E, E, LWD, D, D, D, D, D, RWD, E, E, E, LRWD,
-        LRWD, E, E, E, LWD, D, D, D, D, D, RWD, E, E, E, LRWD,
-        LWD, TWD, TWD, TWD, D, D, D, D, D, D, D, TWD, TWD, TWD, RWD,
-        LWD, D, D, D, D, D, D, BWD, BWD, D, D, D, D, D, RWD,
-        LWD, D, D, D, D, D, BRCD, E, E, BLCD, D, D, D, D, RWD,
-        LWD, D, D, D, D, RWD, E, E, E, E, LWD, D, D, D, RWD,
-        LWD, D, D, D, D, RWD, E, E, E, E, LWD, D, D, D, RWD,
-        LWD, D, D, D, D, D, TRCD, E, E, TLCD, D, D, D, D, RWD,
-        LWD, BWD, BWD, BWD, D, D, D, TWD, TWD, D, D, BWD, BWD, BWD, RWD,
-        LRWD, E, E, E, LWD, D, D, D, D, D, RWD, E, E, E, LRWD,
-        LRWD, E, E, E, LWD, D, D, D, D, D, RWD, E, E, E, LRWD,
-        LRWD, E, E, E, LWD, D, D, D, D, D, RWD, E, E, E, LRWD,
-        BLCD, TBWD, TBWD, TBWD, BWD, BWD, BWD, BWD, BWD, BWD, BWD, TBWD, TBWD, TBWD, BRCD
-    };
-
-    private final short leveldata3[] = {
-        TLCD, TWD, TWD, TWD, TWD, TWD, TWD, TWD, TWD, TWD, TWD, TWD, TWD, TWD, TRCD,
-        LWD, D, D, D, D, D, D, D, D, D, D, D, D, D, RWD,
-        LWD, D, D, D, D, D, D, D, D, D, D, D, D, D, RWD,
-        LWD, D, D, D, D, D, D, D, D, D, D, D, D, D, RWD,
-        LWD, D, D, D, D, D, D, D, D, D, D, D, D, D, RWD,
-        LWD, D, D, D, D, D, D, D, D, D, D, D, D, D, RWD,
-        LWD, D, D, D, D, D, D, D, D, D, D, D, D, D, RWD,
-        LWD, D, D, D, D, D, D, D, D, D, D, D, D, D, RWD,
-        LWD, D, D, D, D, D, D, D, D, D, D, D, D, D, RWD,
-        LWD, D, D, D, D, D, D, D, D, D, D, D, D, D, RWD,
-        LWD, D, D, D, D, D, D, D, D, D, D, D, D, D, RWD,
-        LWD, D, D, D, D, D, D, D, D, D, D, D, D, D, RWD,
-        LWD, D, D, D, D, D, D, D, D, D, D, D, D, D, RWD,
-        LWD, D, D, D, D, D, D, D, D, D, D, D, D, D, RWD,
-        BLCD, BWD, BWD, BWD, BWD, BWD, BWD, BWD, BWD, BWD, BWD, BWD, BWD, BWD, BRCD
-    };
-
+    //track how many consecutive levels the user has played
     int levelCount = 1;
 
     //possible speeds for the ghosts
@@ -150,12 +89,14 @@ public class Board extends JPanel implements ActionListener {
     private Timer timer;
     private int high;
 
-    //boolean for continue the game
-    private boolean cont, wait;
+    //boolean to determine if extreme mode was selected
+    private boolean extremeMode = false;
+
+    //boolean to determine if the fruit was collected
+    private boolean fruit = false;
 
     //constructor for the board to be created and initialized
     public Board() {
-
         loadImages();
         initVariables();
 
@@ -167,13 +108,9 @@ public class Board extends JPanel implements ActionListener {
         setDoubleBuffered(true);
     }
 
-    //initializes and sets variables
+    //initializes and sets variables for the arrays that will be used
     private void initVariables() {
-
         screendata = new short[nrofblocks * nrofblocks];
-        //now color is blue
-        mazecolor = new Color(5, 5, 200);
-        dim = new Dimension(400, 400);
 
         ghostx = new int[maxghosts];
         ghostdx = new int[maxghosts];
@@ -192,13 +129,11 @@ public class Board extends JPanel implements ActionListener {
     @Override
     public void addNotify() {
         super.addNotify();
-
         initGame();
     }
 
-    //pacman movement function:LEAVE
+    //pacman movement function checks how to animate him
     private void doAnim() {
-
         pacanimcount--;
 
         if (pacanimcount <= 0) {
@@ -211,15 +146,12 @@ public class Board extends JPanel implements ActionListener {
         }
     }
 
-    //
+    //after all variables are initialzied, start menu is shown, and user presses 'Enter', the game method is called to check conditions
+    //of the current play while calling the functions to move pacman + the ghosts
     private void playGame(Graphics2D g2d) throws FileNotFoundException, InterruptedException {
-
         if (dying) {
-
             death();
-
         } else {
-
             movePacman();
             drawPacman(g2d);
             moveGhosts(g2d);
@@ -227,9 +159,8 @@ public class Board extends JPanel implements ActionListener {
         }
     }
 
-    //TODO:function which creates the start screen:TODO finish custom start screen by changing displayed strings
+    //function which creates the start screen
     private void showIntroScreen(Graphics2D g2d) throws FileNotFoundException {
-
         //set the color of the start screen using rgb
         g2d.setColor(new Color(0, 0, 0));
         //set the dimensions of the start screen
@@ -242,6 +173,7 @@ public class Board extends JPanel implements ActionListener {
         String ent = "Press 'Enter' To Start The Game";
         String help = "To See The Help Page, Press 'H'";
 
+        //access of file to get the current high score
         Scanner tFile = new Scanner(new FileReader("hi-score.txt"));
         high = tFile.nextInt();
 
@@ -250,42 +182,41 @@ public class Board extends JPanel implements ActionListener {
         Font small = new Font("Comic-Sans", Font.BOLD, 14);
         FontMetrics metr = this.getFontMetrics(small);
 
-        //this is where the string is created and put on the screen:TODO replace instructions with image
-        //put instructions into new method screen
+        //this draws the border box around the picture and instructions
+        g2d.drawRect((scrsize - metr.stringWidth(ent) - 55) / 2, (scrsize / 3), 282, 101);
+        g2d.drawRect((scrsize - metr.stringWidth(ent)) / 2 - 2, (scrsize / 6) - 20, 225, 50);
+
+        //here the strings are drawn to the screen
         g2d.setColor(Color.WHITE);
         g2d.setFont(small);
         g2d.drawString(ent, (scrsize - metr.stringWidth(ent)) / 2, scrsize / 6);
 
         g2d.drawString(help, (scrsize - metr.stringWidth(ent)) / 2, (scrsize / 6) + 20);
-        
+
         g2d.drawImage(intro, (scrsize - metr.stringWidth(ent) - 55) / 2, (scrsize / 3), this);
-        
+
         Font large = new Font("Comic-Sans", Font.BOLD, 24);
         g2d.setFont(large);
         g2d.drawString(highScore, (scrsize - metr.stringWidth(ent)) / 2, 5 * (scrsize / 6));
     }
 
-    private void showHelpScreen(Graphics2D g2d) {
-
-    }
-
-    private void drawScore(Graphics2D g) {
-
+    //method to draw the score at the bottom of the screen
+    private void drawScore(Graphics2D g2d) {
         int i;
         String s;
 
-        g.setFont(smallfont);
-        g.setColor(new Color(96, 128, 255));
+        g2d.setFont(smallfont);
+        g2d.setColor(new Color(96, 128, 255));
         s = "Score: " + score;
-        g.drawString(s, scrsize / 2 + 96, scrsize + 16);
+        g2d.drawString(s, scrsize / 2 + 96, scrsize + 16);
 
         for (i = 0; i < pacsleft; i++) {
-            g.drawImage(pacman3left, i * 28 + 8, scrsize + 1, this);
+            g2d.drawImage(pacman3left, i * 28 + 8, scrsize + 1, this);
         }
     }
 
+    //method to check if the maze has been completed by the player
     private void checkMaze() {
-
         short i = 0;
         boolean finished = true;
 
@@ -298,34 +229,36 @@ public class Board extends JPanel implements ActionListener {
             i++;
         }
 
+        //when a level is completed, award 50 bonus points, increment levelCount, and increase base speed for ghosts
         if (finished) {
 
             score += 50;
-
-            if (nrofghosts < maxghosts) {
-                nrofghosts++;
-            }
 
             if (currentspeed < maxspeed) {
                 currentspeed++;
             }
 
-            if (levelCount == 3) {
+            if (levelCount == 4) {
                 levelCount = 1;
             } else {
                 levelCount++;
             }
+
+            fruit = false;
+
             initLevel();
         }
     }
 
-    //TODO:function to be modified for the continue system
+    //function to handle the case of a lost life
+    //checks that it was not last life, if so then checks for continue system
+    //if no continue then it checks for high score and saves if new
+    //USAGE OF DECORATOR PATTERN
     private void death() throws InterruptedException {
-
         pacsleft--;
 
         if (pacsleft == 0) {
-            UIManager.put("OptionPane.minimumSize", new Dimension(359, 408));
+            UIManager.put("OptionPane.minimumSize", new Dimension(200, 200));
             UIManager.put("OptionPane.messageFont", new Font("System", Font.PLAIN, 24));
             int choice = JOptionPane.showConfirmDialog(null, "   Would you like to continue?", "                      GAME OVER", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE);
             if (choice == 0) {
@@ -351,9 +284,8 @@ public class Board extends JPanel implements ActionListener {
         continueLevel();
     }
 
-    //function to control how the ghosts move
+    //function to control how the ghosts move through the maze
     private void moveGhosts(Graphics2D g2d) {
-
         short i;
         int pos;
         int count;
@@ -425,9 +357,8 @@ public class Board extends JPanel implements ActionListener {
         }
     }
 
-    //function to draw the ghosts
+    //function to draw the ghosts with different colors
     private void drawGhost(Graphics2D g2d, int x, int y, int i) {
-
         switch (i) {
             case 0:
                 g2d.drawImage(ghost1, x, y, this);
@@ -444,9 +375,9 @@ public class Board extends JPanel implements ActionListener {
         }
     }
 
-    //function to move pacman:LEAVE
+    //function to move pacman
+    //also checks if he collected a dot or fruit in the maze
     private void movePacman() {
-
         int pos;
         short ch;
 
@@ -461,9 +392,21 @@ public class Board extends JPanel implements ActionListener {
             pos = pacmanx / blocksize + nrofblocks * (int) (pacmany / blocksize);
             ch = screendata[pos];
 
-            if ((ch & D) != 0) {
+            if ((ch & 16) != 0) {
                 screendata[pos] = (short) (ch & 15);
                 score++;
+            }
+
+            if (pos == 22) {
+                if (!fruit) {
+                    score += 25 * levelCount;
+                }
+                fruit = true;
+            }
+
+            //gives the player an extra life if they reach 500 score
+            if (score == 500) {
+                pacsleft++;
             }
 
             if (reqdx != 0 || reqdy != 0) {
@@ -491,8 +434,12 @@ public class Board extends JPanel implements ActionListener {
         pacmany = pacmany + pacmanspeed * pacmandy;
     }
 
-    //functions to draw pacman:TODO possibly add in option for MRS PACMAN using this
+    //start of all the used functions to draw pacman
+    //this is the main function which calls the others based on current orientation
     private void drawPacman(Graphics2D g2d) {
+        if (fruit) {
+            g2d.drawImage(empty, 7 * blocksize, 1 * blocksize, this);
+        }
 
         if (viewdx == -1) {
             drawPacmanLeft(g2d);
@@ -505,8 +452,8 @@ public class Board extends JPanel implements ActionListener {
         }
     }
 
+    //handles pacman moving upwards
     private void drawPacmanUp(Graphics2D g2d) {
-
         switch (pacmananimpos) {
             case 1:
                 g2d.drawImage(pacman2up, pacmanx + 1, pacmany + 1, this);
@@ -523,8 +470,8 @@ public class Board extends JPanel implements ActionListener {
         }
     }
 
+    //handles pacman moving downwards
     private void drawPacmanDown(Graphics2D g2d) {
-
         switch (pacmananimpos) {
             case 1:
                 g2d.drawImage(pacman2down, pacmanx + 1, pacmany + 1, this);
@@ -541,8 +488,8 @@ public class Board extends JPanel implements ActionListener {
         }
     }
 
+    //handles pacman moving leftwards
     private void drawPacmanLeft(Graphics2D g2d) {
-
         switch (pacmananimpos) {
             case 1:
                 g2d.drawImage(pacman2left, pacmanx + 1, pacmany + 1, this);
@@ -559,8 +506,8 @@ public class Board extends JPanel implements ActionListener {
         }
     }
 
+    //handles pacman moving rightwards
     private void drawPacmanRight(Graphics2D g2d) {
-
         switch (pacmananimpos) {
             case 1:
                 g2d.drawImage(pacman2right, pacmanx + 1, pacmany + 1, this);
@@ -575,13 +522,30 @@ public class Board extends JPanel implements ActionListener {
                 g2d.drawImage(pacman1, pacmanx + 1, pacmany + 1, this);
                 break;
         }
-    }//end of functions to draw pacman:LEAVE
+    }//end of functions to draw pacman
 
+    //function to draw the maze walls, dots, and the fruit based on current level number
     private void drawMaze(Graphics2D g2d) {
-
         short i = 0;
         int x, y;
 
+        //determine which fruit to display
+        switch (levelCount) {
+            case 1:
+                g2d.drawImage(cherry, 7 * blocksize, 1 * blocksize, this);
+                break;
+            case 2:
+                g2d.drawImage(strawberry, 7 * blocksize, 1 * blocksize, this);
+                break;
+            case 3:
+                g2d.drawImage(apple, 7 * blocksize, 1 * blocksize, this);
+                break;
+            default:
+                g2d.drawImage(orange, 7 * blocksize, 1 * blocksize, this);
+                break;
+        }
+
+        //loop through the whole size of the maze drawing appropriate line for each block
         for (y = 0; y < scrsize; y += blocksize) {
             for (x = 0; x < scrsize; x += blocksize) {
 
@@ -606,7 +570,7 @@ public class Board extends JPanel implements ActionListener {
                             y + blocksize - 1);
                 }
 
-                if ((screendata[i] & D) != 0) {
+                if ((screendata[i] & 16) != 0) {
                     g2d.setColor(dotcolor);
                     g2d.fillRect(x + 11, y + 11, 2, 2);
                 }
@@ -616,6 +580,7 @@ public class Board extends JPanel implements ActionListener {
         }
     }
 
+    //initializes the starting variables of the game so that you always start with 3 lives, 0 score, and have 4 ghosts
     private void initGame() {
         pacsleft = 3;
         score = 0;
@@ -624,49 +589,49 @@ public class Board extends JPanel implements ActionListener {
         currentspeed = 1;
     }
 
+    //the level data is retrieved from the outside class maze
     private void initLevel() {
-
-        //TODO: modify code to retrieve leveldata from object of level
-        int i;
-        switch (levelCount) {
-            case 1:
-                for (i = 0; i < nrofblocks * nrofblocks; i++) {
-                    screendata[i] = leveldata1[i];
-                }   break;
-            case 2:
-                for (i = 0; i < nrofblocks * nrofblocks; i++) {
-                    screendata[i] = leveldata2[i];
-                }   break;
-            default:
-                for (i = 0; i < nrofblocks * nrofblocks; i++) {
-                    screendata[i] = leveldata3[i];
-                }   break;
+        //retrieve leveldata from maze object that helps cut clutter from original source code
+        Maze leveldata = new Maze();
+        short[] temp = leveldata.getLevelData();
+        for (int i = 0; i < nrofblocks * nrofblocks; i++) {
+            screendata[i] = temp[i];
         }
+
         continueLevel();
     }
 
+    //function to continue the game
     private void continueLevel() {
-
         short i;
         int dx = 1;
         int random;
 
         for (i = 0; i < nrofghosts; i++) {
 
+            //gives the starting position of ghosts in the maze
             ghosty[i] = 4 * blocksize;
             ghostx[i] = 4 * blocksize;
             ghostdy[i] = 0;
             ghostdx[i] = dx;
             dx = -dx;
-            random = (int) (Math.random() * (currentspeed + 1));
 
-            if (random > currentspeed) {
-                random = currentspeed;
+            //set their speed to max if extreme mode was selected otherwise make them randomly, progressively faster
+            if (extremeMode) {
+                ghostspeed[i] = validspeeds[7];
+            } else {
+                random = (int) (Math.random() * (currentspeed + 1));
+
+                //progressively make the ghosts faster so that they are unique
+                if (random > currentspeed) {
+                    random = currentspeed;
+                }
+
+                ghostspeed[i] = validspeeds[random];
             }
-
-            ghostspeed[i] = validspeeds[random];
         }
 
+        //gives the starting position of pacman in the maze and default movements
         pacmanx = 7 * blocksize;
         pacmany = 11 * blocksize;
         pacmandx = 0;
@@ -678,13 +643,25 @@ public class Board extends JPanel implements ActionListener {
         dying = false;
     }
 
-    //function where the ghosts and pacman images are loaded and set for drawing purposes
+    //function where the intro, ghosts, fruit, and pacman images are loaded and set for drawing purposes
     private void loadImages() {
+        //home screen design
         intro = new ImageIcon("images/Intro.gif").getImage();
+
+        //each colored ghost
         ghost1 = new ImageIcon("images/Ghost1.gif").getImage();
         ghost2 = new ImageIcon("images/Ghost2.gif").getImage();
         ghost3 = new ImageIcon("images/Ghost3.gif").getImage();
         ghost4 = new ImageIcon("images/Ghost4.gif").getImage();
+
+        //the fruits and blank spot
+        cherry = new ImageIcon("images/cherry.gif").getImage();
+        strawberry = new ImageIcon("images/strawberry.gif").getImage();
+        apple = new ImageIcon("images/apple.gif").getImage();
+        orange = new ImageIcon("images/orange.gif").getImage();
+        empty = new ImageIcon("images/empty.gif").getImage();
+
+        //the pacman positions
         pacman1 = new ImageIcon("images/PacMan1.gif").getImage();
         pacman2up = new ImageIcon("images/PacMan2up.gif").getImage();
         pacman3up = new ImageIcon("images/PacMan3up.gif").getImage();
@@ -700,7 +677,7 @@ public class Board extends JPanel implements ActionListener {
         pacman4right = new ImageIcon("images/PacMan4right.gif").getImage();
     }
 
-    //first instance of the graphics g, here the super method is called and then passed to dodrawing method:LEAVE
+    //first instance of the graphics g, here the super method is called and then passed to dodrawing method
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -713,7 +690,7 @@ public class Board extends JPanel implements ActionListener {
         }
     }
 
-    //function where the graphics g is converted to a 2D image and then passed to the necessary methods:TODO pause screen
+    //function where the graphics g is converted to a 2D image and then passed to the necessary methods
     private void doDrawing(Graphics g) throws FileNotFoundException, InterruptedException {
 
         //conversion of the graphics object
@@ -728,20 +705,20 @@ public class Board extends JPanel implements ActionListener {
         drawScore(g2d);
         doAnim();
 
-        //TODO create boolean and use it to determine whether in the help screen or not
+        //show either the start menu or the game maze
         if (ingame) {
             playGame(g2d);
         } else {
             showIntroScreen(g2d);
         }
 
-        //LEAVE
-        g2d.drawImage(ii, 5, 5, this);
+        //clear the map
         Toolkit.getDefaultToolkit().sync();
         g2d.dispose();
     }
 
-    //class that houses the methods to handle changes performed by the keyboard:LEAVE
+    //class that houses the methods to handle changes performed by the keyboard
+    //USAGE OF MVC PATTERN THIS IS THE CONTROLLER, IMAGES + ARRAYS + SCORE PROVIDE MODEL, JFRAME SHOWN IS THE VIEW
     class TAdapter extends KeyAdapter {
 
         @Override
@@ -751,6 +728,7 @@ public class Board extends JPanel implements ActionListener {
 
             //if the game is in session, change position based on the key pressed:LEAVE
             if (ingame) {
+                //arrow keys correspond to shifting pacman's coordinates
                 if (key == KeyEvent.VK_LEFT) {
                     reqdx = -1;
                     reqdy = 0;
@@ -763,39 +741,55 @@ public class Board extends JPanel implements ActionListener {
                 } else if (key == KeyEvent.VK_DOWN) {
                     reqdx = 0;
                     reqdy = 1;
-                } else if (key == KeyEvent.VK_Y) {
-                    cont = true;
-                } else if (key == KeyEvent.VK_N) {
-                    cont = false;
                 } else if (key == KeyEvent.VK_0 && timer.isRunning()) {
-                    //can end the game by pressing 0:TODO write 'are you sure message?'
-                    ingame = false;
+                    //can end the game by pressing 0
+                    timer.stop();
+                    //show the restart confirmation
+                    int choice = JOptionPane.showConfirmDialog(null, "Are you sure you wish to restart the game?",
+                            "                  RESTART", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE);
+                    if (choice == 0) {
+                        timer.start();
+                        fruit = false;
+                        ingame = false;
+                    } else {
+                        timer.start();
+                    }
                 } else if (key == KeyEvent.VK_SPACE) {
-                    //can pause the game by pressing spacebar:TODO add pause screen
+                    //can pause the game by pressing spacebar
                     if (timer.isRunning()) {
                         timer.stop();
+                        //shows the pause menu
+                        JOptionPane.showMessageDialog(null, "                                PAUSED", "                   PAUSED", JOptionPane.PLAIN_MESSAGE);
                     } else {
                         timer.start();
                     }
                 }
             } else if (!ingame) {
                 if (key == KeyEvent.VK_ENTER) {
-                    //start the game by pressing the enter key:LEAVE
+                    //start the regular game by pressing the enter key
+                    extremeMode = false;
+                    ingame = true;
+                    initGame();
+                } else if (key == KeyEvent.VK_E) {
+                    //start extreme mode through e key
+                    extremeMode = true;
                     ingame = true;
                     initGame();
                 } else if (key == KeyEvent.VK_H) {
-                    //write function to display instruction screen and bring other statements in there:TODO
-                    //System.out.println("Help Screen Activated");
-                    JOptionPane.showConfirmDialog(null, "The objective of the game is simple: collect all dots in the maze\n"
+                    //display of the help menu with various statements
+                    JOptionPane.showConfirmDialog(null, "The objective of the game is simple: collect all dots in the maze.\n"
                             + "Use the arrow keys to move Pac-Man in the corresponding direction.\n"
                             + "Press the spacebar while in game to pause and unpause play.\n"
                             + "Press the 0 key to end the game and return to the menu.\n"
-                            ,"                      INSTRUCTIONS", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+                            + "Collect fruit for extra points and aim for the high score!\n"
+                            + "Don't fret over losing, there is a continue system upon death.\n"
+                            + "For a real challenge, press 'E' on the menu for EXTREME MODE!\n",
+                            "                          INSTRUCTIONS", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
                 }
             }
         }
 
-        //overridden method to set the movement to zero if a key is no longer being pressed:LEAVE
+        //overridden method to set the movement to zero if a key is no longer being pressed
         @Override
         public void keyReleased(KeyEvent e) {
             int key = e.getKeyCode();
@@ -808,7 +802,7 @@ public class Board extends JPanel implements ActionListener {
         }
     }
 
-    //overridden method to repaint the screen as dots are eaten and the character moves:LEAVE
+    //overridden method to repaint the screen as dots are eaten and the character moves
     @Override
     public void actionPerformed(ActionEvent e) {
         repaint();
